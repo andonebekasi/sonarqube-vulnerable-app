@@ -22,16 +22,20 @@ jobs:
         with:
           go-version: 1.21
 
+      - name: Install GoSec
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Run GoSec
+        run: |
+          gosec -fmt=json -out=gosec-report.json ./...
+
       - name: Install SonarScanner
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
           unzip sonar-scanner.zip
           sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
           sudo ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
-
-      - name: Run GoSec
-        run: |
-          gosec -fmt=json -out=gosec-report.json ./...
 
       - name: Run SonarQube Analysis
         env:
