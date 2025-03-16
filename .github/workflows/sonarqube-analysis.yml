@@ -50,3 +50,6 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.go.security.reportPaths=gosec-report.json
+
+
+
