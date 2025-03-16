@@ -1,28 +1,51 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"log"
+
+	_ "github.com/lib/pq"
 )
 
-func vulnerableHandler(w http.ResponseWriter, r *http.Request) {
-	// SQL Injection Vulnerability
-	userInput := r.URL.Query().Get("user")
-	query := "SELECT * FROM users WHERE name = '" + userInput + "'" // Rentan SQLi
+var db *sql.DB
 
-	fmt.Fprintf(w, "Query executed: %s", query)
+func initDB() {
+	var err error
+	db, err = sql.Open("postgres", "user=admin password=admin dbname=testdb sslmode=disable")
+	if err != nil {
+		log.Fatal("Database connection error:", err)
+	}
+}
+
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("username")
+	password := r.URL.Query().Get("password")
+
+	// 🚨 SQL Injection Vulnerability 🚨
+	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' AND password='%s'", username, password)
+	row := db.QueryRow(query) // ⛔ Tidak menggunakan parameterized query
+
+	var userID int
+	err := row.Scan(&userID)
+	if err != nil {
+		fmt.Fprintf(w, "Login failed!")
+	} else {
+		fmt.Fprintf(w, "Welcome, %s!", username)
+	}
 }
 
 func main() {
+	initDB()
+
+	http.HandleFunc("/login", handleLogin)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
-	http.HandleFunc("/", vulnerableHandler)
-
-	log.Printf("Starting server on port %s...", port)
+	log.Println("Server running on port", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
