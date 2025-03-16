@@ -5,47 +5,30 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-
-func initDB() {
-	var err error
-	db, err = sql.Open("postgres", "user=admin password=admin dbname=testdb sslmode=disable")
-	if err != nil {
-		log.Fatal("Database connection error:", err)
-	}
-}
-
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	username := r.URL.Query().Get("username")
-	password := r.URL.Query().Get("password")
-
-	// 🚨 SQL Injection Vulnerability 🚨
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' AND password='%s'", username, password)
-	row := db.QueryRow(query) // ⛔ Tidak menggunakan parameterized query
-
-	var userID int
-	err := row.Scan(&userID)
-	if err != nil {
-		fmt.Fprintf(w, "Login failed!")
-	} else {
-		fmt.Fprintf(w, "Welcome, %s!", username)
-	}
-}
-
 func main() {
-	initDB()
+	http.HandleFunc("/vuln", func(w http.ResponseWriter, r *http.Request) {
+		userInput := r.URL.Query().Get("id")
+		db, err := sql.Open("postgres", "postgres://user:pass@localhost/dbname?sslmode=disable")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
 
-	http.HandleFunc("/login", handleLogin)
+		// SQL Injection vulnerability
+		query := "SELECT * FROM users WHERE id = " + userInput
+		rows, err := db.Query(query)
+		if err != nil {
+			http.Error(w, "Error executing query", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Println("Server running on port", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+		fmt.Fprintf(w, "Query executed: %s", query)
+	})
+
+	log.Println("Server started at :8080")
+	http.ListenAndServe(":8080", nil)
 }
