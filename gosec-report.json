@@ -1,0 +1,44 @@
+{
+	"Golang errors": {},
+	"Issues": [
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "676",
+				"url": "https://cwe.mitre.org/data/definitions/676.html"
+			},
+			"rule_id": "G114",
+			"details": "Use of net/http serve function that has no support for setting timeouts",
+			"file": "/home/andi/test6/sonarqube-vulnerable-app/main.go",
+			"code": "15: \thttp.HandleFunc(\"/\", handler)\n16: \thttp.ListenAndServe(\":8080\", nil)\n17: }\n",
+			"line": "16",
+			"column": "2",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "LOW",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "703",
+				"url": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"rule_id": "G104",
+			"details": "Errors unhandled",
+			"file": "/home/andi/test6/sonarqube-vulnerable-app/main.go",
+			"code": "15: \thttp.HandleFunc(\"/\", handler)\n16: \thttp.ListenAndServe(\":8080\", nil)\n17: }\n",
+			"line": "16",
+			"column": "2",
+			"nosec": false,
+			"suppressions": null
+		}
+	],
+	"Stats": {
+		"files": 1,
+		"lines": 17,
+		"nosec": 0,
+		"found": 2
+	},
+	"GosecVersion": "dev"
+}
